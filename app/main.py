@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template_string
 import os
 
 app = Flask(__name__)
@@ -11,11 +11,21 @@ users = [
 
 @app.route('/')
 def index():
-    # Primer endpoint: Bienvenida
-    return jsonify({
-        "mensaje": "API de Informática Jurídica - UM",
-        "estado": "Operativa"
-    })
+    # Frontend básico integrado para probar los endpoints
+    return render_template_string('''
+        <h1>API Management - IAS</h1>
+        <button onclick="fetchUsers()">Cargar Usuarios</button>
+        <pre id="output"></pre>
+        <script>
+            function fetchUsers() {
+                fetch('/users')
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+                    });
+            }
+        </script>
+    ''')
 
 @app.route('/healthcheck')
 def healthcheck():
