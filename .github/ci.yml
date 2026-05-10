@@ -24,6 +24,16 @@ jobs:
 
       - name: Security Scan (Bandit)
         run: bandit -r app/
-
+    
       - name: Run Tests (Pytest)
-        run: pytest
+        run: python -m pytest
+
+      - name: Deploy to Render (DEV)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -X GET "${{ secrets.RENDER_DEPLOY_HOOK_DEV }}"
+
+      - name: Deploy to Render (QA)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -X GET "${{ secrets.RENDER_DEPLOY_HOOK_QA }}"
