@@ -48,19 +48,28 @@ def index():
     <meta charset="UTF-8">
     <title>User Dashboard - IAS</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background-color: #3f51b5; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        body { font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #ffffff; color: #1a1a1a; }
+        header { background-color: #1a1a1a; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d32f2f; }
         .container { display: flex; flex: 1; }
-        .table-section { flex: 2; padding: 20px; border-right: 2px solid #3f51b5; }
-        .form-section { flex: 1; padding: 20px; background-color: #f9f9f9; }
+        .table-section { flex: 2; padding: 20px; border-right: 2px solid #333333; }
+        .form-section { flex: 1; padding: 20px; background-color: #f5f5f5; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { color: #3f51b5; text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        input { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #3f51b5; box-sizing: border-box; }
-        label { color: #999; font-weight: bold; display: block; }
-        .btn-new { background: white; color: #3f51b5; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .btn-save { background: #3f51b5; color: white; border: none; padding: 10px 30px; cursor: pointer; border-radius: 4px; }
-        .btn-cancel { background: white; color: #3f51b5; border: 1px solid #3f51b5; padding: 10px 30px; cursor: pointer; border-radius: 4px; }
+        th { color: #d32f2f; text-align: left; padding: 10px; border-bottom: 2px solid #1a1a1a; font-weight: bold; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        input { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #333333; box-sizing: border-box; background-color: #ffffff; color: #1a1a1a; }
+        input:focus { border-color: #d32f2f; outline: none; }
+        label { color: #555555; font-weight: bold; display: block; }
+        h3 { color: #1a1a1a; margin-top: 0; }
+        
+        /* Botones y Acciones */
+        .btn-new { background: #d32f2f; color: white; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+        .btn-new:hover { background: #b71c1c; }
+        .btn-save { background: #1a1a1a; color: white; border: none; padding: 10px 30px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: background 0.2s; }
+        .btn-save:hover { background: #d32f2f; }
+        .btn-cancel { background: transparent; color: #333333; border: 1px solid #333333; padding: 10px 30px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: all 0.2s; }
+        .btn-cancel:hover { background: #333333; color: white; }
+        .btn-delete { background: #d32f2f; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 0.85em; }
+        .btn-delete:hover { background: #b71c1c; }
         .actions { display: flex; gap: 10px; margin-top: 20px; }
     </style>
 </head>
@@ -119,7 +128,7 @@ def index():
                     <td>${u.nombre}</td>
                     <td>${u.apellido}</td>
                     <td>${u.rol}</td>
-                    <td><button onclick="alert('Función de eliminación pendiente de vincular')">Eliminar</button></td>
+                    <td><button class="btn-delete" onclick="alert('Función de eliminación pendiente de vincular')">Eliminar</button></td>
                 </tr>`;
         });
     }
