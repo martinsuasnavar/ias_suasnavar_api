@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-node-version: '3.12'
+        python-version: '3.12'
 
     # 3. Instala las dependencias del proyecto y de desarrollo (simulando tu venv)
     - name: Install dependencies
