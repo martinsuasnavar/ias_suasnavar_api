@@ -78,4 +78,4 @@ def test_seed_usuarios_prohibido_en_produccion(client, monkeypatch):
     assert data['error'] == "Acción no permitida en este entorno"
     
     
-# Testeo de pipeline
+# Forzando ejecucion del pipeline de pruebas unitarias
