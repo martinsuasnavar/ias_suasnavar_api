@@ -76,3 +76,6 @@ def test_seed_usuarios_prohibido_en_produccion(client, monkeypatch):
     data = json.loads(response.data)
     assert "error" in data
     assert data['error'] == "Acción no permitida en este entorno"
+    
+    
+# Testeo de pipeline
