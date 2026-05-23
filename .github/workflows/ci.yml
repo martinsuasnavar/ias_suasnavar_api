@@ -5,7 +5,7 @@ on:
     branches: [ "develop", "main" ]
 
 jobs:
-  # JOB 1: VALIDACIÓN UNITARIA
+  # JOB 1: VALIDACIÓN UNITARIA, ESTÁTICA Y SEGURIDAD BASE
   backend-unit-tests:
     runs-on: ubuntu-latest
 
@@ -23,6 +23,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
+        pip install bandit pip-audit  # Instalamos Bandit y Pip-Audit
+
+    # CONSIGNA: Análisis con Bandit (Corre siempre para auditar tu código)
+    - name: Run Bandit Security Scan
+      run: |
+        bandit -r app/
+
+    # CONSIGNA: Tests de seguridad avanzados (SOLO si el PR va hacia la rama main)
+    - name: Run Advanced Security Tests (pip-audit)
+      if: github.base_ref == 'main'
+      run: |
+        pip-audit
 
     - name: Run Unit Tests
       env:
