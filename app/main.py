@@ -225,7 +225,8 @@ def seed_usuarios():
 if __name__ == '__main__':
     # Configuración de variables con fallback para Render y CMD local
     port = int(os.environ.get("PORT", 5000))
-    host = os.environ.get("HOST", "0.0.0.0")
+    # Le decimos a Bandit que sabemos lo que hacemos con el bindeo de red
+    host = os.environ.get("HOST", "0.0.0.0")  # nosec B104
     debug = os.environ.get("DEBUG", "False").lower() == "true"
     
     # Crea automáticamente las tablas de la base de datos si no existen
