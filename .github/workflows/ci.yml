@@ -1,13 +1,18 @@
-name: CI Pipeline - IAS
+name: CI/CD Pipeline - IAS
 
 on:
   pull_request:
     branches: [ "develop", "main" ]
+  push:
+    branches: [ "develop", "main" ]
 
 jobs:
-  # JOB 1: VALIDACIÓN UNITARIA, ESTÁTICA Y SEGURIDAD BASE #
+  # ==========================================
+  # ETAPA 1: CONTINUOUS INTEGRATION (CI)
+  # ==========================================
   backend-unit-tests:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
 
     steps:
     - name: Checkout code
@@ -23,16 +28,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        pip install bandit pip-audit  # Instalamos Bandit y Pip-Audit
+        pip install bandit pip-audit
 
-    # CONSIGNA: Análisis con Bandit (Corre siempre para auditar tu código)
     - name: Run Bandit Security Scan
       run: |
         bandit -r app/
 
-    # CONSIGNA: Tests de seguridad avanzados (SOLO si el PR va hacia la rama main)
     - name: Run Advanced Security Tests (pip-audit)
-      if: github.base_ref == 'main'
+      if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
       run: |
         pip-audit
 
@@ -42,10 +45,10 @@ jobs:
       run: |
         pytest tests/unit/test_main.py
 
-  # JOB 2: VALIDACIÓN DE INTEGRACIÓN (Depende del éxito del Job 1)
   backend-integration-tests:
     runs-on: ubuntu-latest
     needs: backend-unit-tests
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
 
     steps:
     - name: Checkout code
@@ -68,3 +71,43 @@ jobs:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         pytest tests/integration/test_integration.py
+
+  # ==========================================
+  # ETAPA 2: CONTINUOUS DEPLOYMENT (CD)
+  # ==========================================
+  
+  # 1. DEPLOY AUTOMÁTICO A DEV (Tras mergear en develop)
+  deploy-to-dev:
+    runs-on: ubuntu-latest
+    needs: backend-integration-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Trigger Render Deploy to DEV
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_DEV }}"
+
+  # 2. DEPLOY AUTOMÁTICO A QA (Tras mergear en main)
+  deploy-to-qa:
+    runs-on: ubuntu-latest
+    needs: backend-integration-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Trigger Render Deploy to QA
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_QA }}"
+
+  # 3. DEPLOY MANUAL A PRD (Requiere tu aprobación expresa en la interfaz)
+  deploy-to-prd:
+    runs-on: ubuntu-latest
+    needs: backend-integration-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Vinculamos este job al entorno protegido de GitHub
+    environment:
+      name: production
+    
+    steps:
+    - name: Trigger Render Deploy to PRD
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_PRD }}"
