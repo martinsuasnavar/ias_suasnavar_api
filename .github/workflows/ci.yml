@@ -4,12 +4,43 @@ on:
   pull_request:
     branches: [ "develop", "main" ]
   push:
-    branches: [ "develop", "main" ]
+    branches: [ "develop", "main", "**" ]
+
+permissions:
+  contents: write
+  pull_requests: write
 
 jobs:
   # ==========================================
   # ETAPA 1: CONTINUOUS INTEGRATION (CI)
   # ==========================================
+
+  # NUEVO: Abre PR automático si pusheas a una rama que no sea develop o main
+  auto-create-pr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Pull Request to Develop
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Verifica si ya existe un PR abierto para esta rama antes de intentar crear uno nuevo
+        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '.[0].number')
+        
+        if [ -z "$PR_EXISTS" ]; then
+          gh pr create \
+            --title "Automated PR: ${{ github.ref_name }} -> develop" \
+            --body "PR generado automáticamente al recibir un commit en la rama **${{ github.ref_name }}**." \
+            --base "develop" \
+            --head "${{ github.ref_name }}"
+        else
+          echo "Ya existe un Pull Request activo (#$PR_EXISTS) para esta rama."
+        fi
+
+
   backend-unit-tests:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
