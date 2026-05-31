@@ -20,15 +20,17 @@ jobs:
     if: github.event_name == 'push' && github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
+      uses: actions/checkout@v4.2.2
 
     - name: Create Pull Request to Develop
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '..number')
+        # Obtiene el número del primer PR que coincida de forma limpia
+        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '.[0].number')
         
-        if [ -z "$PR_EXISTS" ]; then
+        # Valida si la respuesta es completamente vacía o contiene la palabra null
+        if [ -z "$PR_EXISTS" ] || [ "$PR_EXISTS" = "null" ]; then
           gh pr create \
             --title "Automated PR: ${{ github.ref_name }} -> develop" \
             --body "PR generado automáticamente al recibir un commit en la rama **${{ github.ref_name }}**." \
