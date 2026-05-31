@@ -1,17 +1,19 @@
 name: CI/CD Pipeline - IAS
 
 on:
-  push:
-    branches: [ "develop", "main", "feature/*" ] # Escucha los pushes en features y los merges en dev/main
   pull_request:
+    branches: [ "develop", "main" ]
+  push:
     branches: [ "develop", "main" ]
 
 jobs:
   # ==========================================
-  # ETAPA 1: VALIDACIÓN E INTEGRACIÓN (CI)
+  # ETAPA 1: CONTINUOUS INTEGRATION (CI)
   # ==========================================
-  backend-tests:
+  backend-unit-tests:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -37,67 +39,75 @@ jobs:
       run: |
         pip-audit
 
-    - name: Run Unit & Integration Tests
+    - name: Run Unit Tests
+      env:
+        PYTHONPATH: .
       run: |
-        pytest
+        pytest tests/unit/test_main.py
+
+  backend-integration-tests:
+    runs-on: ubuntu-latest
+    needs: backend-unit-tests
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run Integration Tests
+      env:
+        PYTHONPATH: .
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: |
+        pytest tests/integration/test_integration.py
 
   # ==========================================
-  # ETAPA 2: AUTOMATIZACIÓN DE PULL REQUESTS
+  # ETAPA 2: CONTINUOUS DEPLOYMENT (CD)
   # ==========================================
   
-  # A. Crea el PR de feature a develop automáticamente al pushear la feature
-  auto-pr-feature-to-dev:
-    runs-on: ubuntu-latest
-    needs: backend-tests
-    if: startsWith(github.ref, 'refs/heads/feature/') && github.event_name == 'push'
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Create Pull Request to Develop
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref_name }}
-        base: develop
-        title: "auto(r): Merge ${{ github.ref_name }} into develop"
-        body: "Pull Request generado automáticamente por el pipeline de CI tras validación exitosa."
-
-  # B. Crea el PR de develop a main automáticamente cuando se modifica develop
-  auto-pr-dev-to-main:
-    runs-on: ubuntu-latest
-    needs: backend-tests
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Create Pull Request to Main
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: develop
-        base: main
-        title: "auto(release): Sync develop with main"
-        body: "PR automático generado porque la rama develop sufrió modificaciones (Merge de Feature)."
-
-  # ==========================================
-  # ETAPA 3: CONTINUOUS DEPLOYMENT (CD)
-  # ==========================================
+  # 1. DEPLOY AUTOMÁTICO A DEV (Tras mergear en develop)
   deploy-to-dev:
     runs-on: ubuntu-latest
-    needs: backend-tests
+    needs: backend-integration-tests
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    
     steps:
     - name: Trigger Render Deploy to DEV
       run: |
         curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_DEV }}"
 
+  # 2. DEPLOY AUTOMÁTICO A QA (Tras mergear en main)
   deploy-to-qa:
     runs-on: ubuntu-latest
-    needs: backend-tests
+    needs: backend-integration-tests
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
     steps:
     - name: Trigger Render Deploy to QA
       run: |
         curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_QA }}"
+
+  # 3. DEPLOY MANUAL A PRD (Requiere tu aprobación expresa en la interfaz)
+  deploy-to-prd:
+    runs-on: ubuntu-latest
+    needs: backend-integration-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Vinculamos este job al entorno protegido de GitHub
+    environment:
+      name: production
+    
+    steps:
+    - name: Trigger Render Deploy to PRD
+      run: |
+        curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_PRD }}"
