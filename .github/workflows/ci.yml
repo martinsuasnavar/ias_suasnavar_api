@@ -2,9 +2,9 @@ name: CI/CD Pipeline - IAS
 
 on:
   pull_request:
-    branches: [ "feature", "develop", "main" ]
+    branches: [ "develop", "main" ]
   push:
-    branches: [ "feature", "develop", "main" ]
+    branches: [ "develop", "main" ]
 
 jobs:
   # ==========================================
