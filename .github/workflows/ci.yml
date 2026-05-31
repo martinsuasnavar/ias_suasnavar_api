@@ -17,27 +17,41 @@ jobs:
   
   create-pr:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main'
+    if: github.event_name == 'push'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.2
 
-    - name: Create Pull Request to Develop
+    - name: Create Pull Request (Feature -> Develop o Develop -> Main)
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Obtiene el número del primer PR que coincida de forma limpia
-        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '.[0].number')
+        # Definimos variables dinámicas según la rama que recibe el push
+        if [ "${{ github.ref_name }}" = "develop" ]; then
+          TARGET_BASE="main"
+          PR_TITLE="Automated Release: develop -> main"
+          PR_BODY="PR generado automáticamente al consolidar cambios en la rama **develop**. Listo para pruebas y despliegue a QA/PRD."
+        elif [ "${{ github.ref_name }}" != "main" ]; then
+          TARGET_BASE="develop"
+          PR_TITLE="Automated PR: ${{ github.ref_name }} -> develop"
+          PR_BODY="PR generado automáticamente al recibir un commit en la rama **${{ github.ref_name }}**."
+        else
+          echo "Push directo en main. No se requiere automatización de PR."
+          exit 0
+        fi
+
+        # Comprueba si ya existe un PR abierto con esta combinación exacta de ramas
+        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "$TARGET_BASE" --state open --json number --jq '.[0].number')
         
-        # Valida si la respuesta es completamente vacía o contiene la palabra null
         if [ -z "$PR_EXISTS" ] || [ "$PR_EXISTS" = "null" ]; then
           gh pr create \
-            --title "Automated PR: ${{ github.ref_name }} -> develop" \
-            --body "PR generado automáticamente al recibir un commit en la rama **${{ github.ref_name }}**." \
-            --base "develop" \
+            --title "$PR_TITLE" \
+            --body "$PR_BODY" \
+            --base "$TARGET_BASE" \
             --head "${{ github.ref_name }}"
+          echo "Pull Request creado exitosamente hacia $TARGET_BASE."
         else
-          echo "Ya existe un Pull Request activo (#$PR_EXISTS) para esta rama."
+          echo "Ya existe un Pull Request activo (#$PR_EXISTS) de ${{ github.ref_name }} hacia $TARGET_BASE."
         fi
 
   backend-unit-tests:
@@ -46,10 +60,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
+      uses: actions/checkout@v4.2.2
 
     - name: Set up Python
-      uses: actions/setup-python@v5.4.0 # versión actualizada compatible con Node 24
+      uses: actions/setup-python@v5.4.0
       with:
         python-version: '3.12'
 
@@ -82,10 +96,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
+      uses: actions/checkout@v4.2.2
 
     - name: Set up Python
-      uses: actions/setup-python@v5.4.0 # versión actualizada compatible con Node 24
+      uses: actions/setup-python@v5.4.0
       with:
         python-version: '3.12'
 
