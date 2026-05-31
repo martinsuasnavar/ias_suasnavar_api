@@ -14,8 +14,7 @@ jobs:
   # ==========================================
   # ETAPA 1: CONTINUOUS INTEGRATION (CI)
   # ==========================================
-
-  # NUEVO: Abre PR automático si pusheas a una rama que no sea develop o main
+  
   auto-create-pr:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main'
@@ -39,17 +38,16 @@ jobs:
           echo "Ya existe un Pull Request activo (#$PR_EXISTS) para esta rama."
         fi
 
-
   backend-unit-tests:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5.4.0 # versión actualizada compatible con Node 24
       with:
         python-version: '3.12'
 
@@ -82,10 +80,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5.4.0 # versión actualizada compatible con Node 24
       with:
         python-version: '3.12'
 
@@ -106,7 +104,6 @@ jobs:
   # ETAPA 2: CONTINUOUS DEPLOYMENT (CD)
   # ==========================================
   
-  # 1. DEPLOY AUTOMÁTICO A DEV (Tras mergear en develop)
   deploy-to-dev:
     runs-on: ubuntu-latest
     needs: backend-integration-tests
@@ -117,7 +114,7 @@ jobs:
       run: |
         curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_DEV }}"
 
-  # 2. DEPLOY AUTOMÁTICO A QA (Tras mergear en main)
+  # 2. DEPLOY AUTOMÁTICO A QA
   deploy-to-qa:
     runs-on: ubuntu-latest
     needs: backend-integration-tests
@@ -128,12 +125,11 @@ jobs:
       run: |
         curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_QA }}"
 
-  # 3. DEPLOY MANUAL A PRD (Requiere tu aprobación expresa en la interfaz)
+  # 3. DEPLOY MANUAL A PRD
   deploy-to-prd:
     runs-on: ubuntu-latest
     needs: backend-integration-tests
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    # Vinculamos este job al entorno protegido de GitHub
     environment:
       name: production
     
