@@ -21,14 +21,13 @@ jobs:
     if: github.event_name == 'push' && github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2 # versión actualizada compatible con Node 24
 
     - name: Create Pull Request to Develop
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Verifica si ya existe un PR abierto para esta rama antes de intentar crear uno nuevo
-        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '.[0].number')
+        PR_EXISTS=$(gh pr list --head "${{ github.ref_name }}" --base "develop" --json number --jq '..number')
         
         if [ -z "$PR_EXISTS" ]; then
           gh pr create \
