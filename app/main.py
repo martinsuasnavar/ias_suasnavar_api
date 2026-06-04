@@ -99,13 +99,13 @@ def index():
 
     <section class="form-section">
         <h3>New user</h3>
-        <label>Nombre</label>
+        <label>Name</label>
         <input type="text" id="nombre">
         
-        <label>Apellido</label>
+        <label>Surname</label>
         <input type="text" id="apellido">
         
-        <label>Rol</label>
+        <label>Role</label>
         <input type="text" id="rol">
 
         <div class="actions">
@@ -128,7 +128,7 @@ def index():
                     <td>${u.nombre}</td>
                     <td>${u.apellido}</td>
                     <td>${u.rol}</td>
-                    <td><button class="btn-delete" onclick="deleteUser(${u.id})">Eliminar</button></td>
+                    <td><button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button></td>
                 </tr>`;
         });
     }
