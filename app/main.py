@@ -86,7 +86,7 @@ def index():
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>NOMBRE</th>
+                    <th>NAME</th>
                     <th>APELLIDO</th>
                     <th>ROL</th>
                     <th>ACTIONS</th>
