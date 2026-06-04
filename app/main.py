@@ -46,7 +46,7 @@ def index():
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>User Dashboard - IAS</title>
+    <title>User Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #121212; color: #ffffff; }
         header { background-color: #1a1a1a; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d32f2f; }
@@ -87,8 +87,8 @@ def index():
                 <tr>
                     <th>ID</th>
                     <th>NAME</th>
-                    <th>APELLIDO</th>
-                    <th>ROL</th>
+                    <th>SURNAME</th>
+                    <th>ROLE</th>
                     <th>ACTIONS</th>
                 </tr>
             </thead>
@@ -128,7 +128,7 @@ def index():
                     <td>${u.nombre}</td>
                     <td>${u.apellido}</td>
                     <td>${u.rol}</td>
-                    <td><button class="btn-delete" onclick="alert('Función de eliminación pendiente de vincular')">Eliminar</button></td>
+                    <td><button class="btn-delete" onclick="deleteUser(${u.id})">Eliminar</button></td>
                 </tr>`;
         });
     }
@@ -149,6 +149,21 @@ def index():
         if (response.ok) {
             clearForm();
             loadUsers();
+        }
+    }
+
+    // NUEVA FUNCIÓN FRONTEND PARA ELIMINAR
+    async function deleteUser(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+            const response = await fetch(`/usuarios/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadUsers(); // Recarga la tabla tras borrar con éxito
+            } else {
+                alert('Error al intentar eliminar el usuario');
+            }
         }
     }
 
@@ -191,6 +206,17 @@ def create_usuario():
     db.session.add(nuevo_usuario)
     db.session.commit()
     return jsonify({"message": "Usuario creado", "id": nuevo_usuario.id}), 201
+
+
+# =====================================================================
+# NUEVA RUTA BACKEND: DELETE para borrar un usuario específico por su ID
+# =====================================================================
+@app.route('/usuarios/<int:id>', methods=['DELETE'])
+def delete_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    db.session.delete(usuario)
+    db.session.commit()
+    return jsonify({"message": f"Usuario con ID {id} eliminado correctamente"}), 200
 
 
 # SEED: Carga automática de datos ficticios (Solo si DEBUG=True)
