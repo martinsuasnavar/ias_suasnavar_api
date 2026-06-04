@@ -9,7 +9,7 @@ def integration_client():
     app.config['TESTING'] = True
     
     # 2. Definir la URI de Render directamente
-    render_uri = 'postgresql://usuario:password@host-de-render.com/nombre_bd'
+    render_uri = 'postgresql://suasnavar_api_db_user:LORx91CiSSGWKjEFpSrCgbhTsp6BlOmd@dpg-d8gm7vflk1mc73f1sj1g-a.oregon-postgres.render.com/suasnavar_api_db'
     app.config['SQLALCHEMY_DATABASE_URI'] = render_uri
     
     # 3. Re-vinculación segura mediante la inyección del engine en la sesión
