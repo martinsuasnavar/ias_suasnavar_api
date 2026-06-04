@@ -35,7 +35,7 @@ def test_healthcheck(client):
     assert data['status'] == 'up'
     assert data['db'] == 'connected'
 
-
+ 
 def test_get_usuarios_vacio(client):
     """Verifica que /usuarios devuelva una lista vacía si no hay registros"""
     response = client.get('/usuarios')
