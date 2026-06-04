@@ -192,6 +192,7 @@ def create_usuario():
     db.session.commit()
     return jsonify({"message": "Usuario creado", "id": nuevo_usuario.id}), 201
 
+
 # SEED: Carga automática de datos ficticios (Solo si DEBUG=True)
 @app.route('/seed', methods=['GET'])
 def seed_usuarios():
