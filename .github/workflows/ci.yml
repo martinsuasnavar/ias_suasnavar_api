@@ -29,12 +29,12 @@ jobs:
         # Definimos variables dinámicas según la rama que recibe el push
         if [ "${{ github.ref_name }}" = "develop" ]; then
           TARGET_BASE="main"
-          PR_TITLE="Automated Release: develop -> main"
-          PR_BODY="PR generado automáticamente al consolidar cambios en la rama **develop**. Listo para pruebas y despliegue a QA/PRD."
+          PR_TITLE="Incoming PR: develop -> main"
+          PR_BODY="Code review the following changes in **${{ github.ref_name }}**, if everything is alright, approve them. PROCCED WITH CAUTION, as these changes will go to production."
         elif [ "${{ github.ref_name }}" != "main" ]; then
           TARGET_BASE="develop"
-          PR_TITLE="Automated PR: ${{ github.ref_name }} -> develop"
-          PR_BODY="PR generado automáticamente al recibir un commit en la rama **${{ github.ref_name }}**."
+          PR_TITLE="Incoming PR: ${{ github.ref_name }} -> develop"
+          PR_BODY="Code review the following changes in **${{ github.ref_name }}**, if everything is alright, approve them."
         else
           echo "Push directo en main. No se requiere automatización de PR."
           exit 0

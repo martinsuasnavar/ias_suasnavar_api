@@ -178,7 +178,7 @@ def get_usuarios():
         {"id": u.id, "nombre": u.nombre, "apellido": u.apellido, "rol": u.rol} 
         for u in usuarios
     ]), 200
-
+ 
 # POST: Crear usuario real en Postgres
 @app.route('/usuarios', methods=['POST'])
 def create_usuario():
